@@ -1,14 +1,20 @@
-import Route from "./modules/Route"
+import { LocalStorageStore } from "./modules/LocalStorage"
+import { RouteStore } from "./modules/Route"
+import { SocketIOStore } from "./modules/SocketIO"
 
 export class Store {
-    route: Route
+    route: RouteStore
+    socketIO: SocketIOStore
+    localStorage: LocalStorageStore
 
     constructor() {
-        this.route = new Route()
+        this.route = new RouteStore()
+        this.socketIO = new SocketIOStore()
+        this.localStorage = new LocalStorageStore()
     }
 
     async init() {
-        const promises = [this.route.init(this)]
+        const promises = [this.route.init(this), this.socketIO.init(this), this.localStorage.init(this)]
         return Promise.all(promises)
     }
 }

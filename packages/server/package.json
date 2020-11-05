@@ -13,6 +13,9 @@
     "dependencies": {
         "lodash": "4.17.20",
         "darkest-bovine": "^1.0.4",
+        "socket.io": "2.3.0",
+        "game-engine": "1.0.0",
+        "shared": "1.0.0",
         "async-lock": "^1.2.4",
         "axios": "0.19.2",
         "body-parser": "^1.19.0",

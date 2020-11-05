@@ -1,5 +1,5 @@
 {
-    "name": "game-engine",
+    "name": "shared",
     "version": "1.0.0",
     "description": "",
     "main": "dist/index.js",
@@ -11,8 +11,6 @@
         "lint": "eslint --fix \"src/**/*.{js,ts,jsx,tsx}\""
     },
     "dependencies": {
-        "lodash": "4.17.20",
-        "shared": "1.0.0",
-        "big.js": "6.0.0"
+        "lodash": "4.17.20"
     }
 }

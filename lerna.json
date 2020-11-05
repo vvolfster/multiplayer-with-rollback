@@ -1,4 +1,4 @@
 {
-    "packages": ["packages/game-engine", "packages/client"],
+    "packages": ["packages/shared", "packages/game-engine", "packages/server", "packages/client"],
     "version": "1.0.0"
 }

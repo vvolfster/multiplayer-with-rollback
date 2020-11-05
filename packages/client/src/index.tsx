@@ -1,4 +1,4 @@
-// eslint-disable-next-line
+import { makeStyles } from "@material-ui/styles"
 import "mobx-react-lite/batchingForReactDom"
 import { use100vh } from "react-div-100vh"
 import CssBaseLine from "@material-ui/core/CssBaseline"
@@ -8,19 +8,28 @@ import { observer } from "mobx-react-lite"
 import { AppRouter } from "./Router"
 import React from "react"
 import ReactDOM from "react-dom"
-import { Theme } from "style"
+import { Relative, Theme } from "style"
 import * as serviceWorker from "./serviceWorker"
+import { Theme as MuiTheme } from "@material-ui/core"
+
+const useStyles = makeStyles((theme: MuiTheme) => ({
+    router: {
+        width: "100vw",
+        ...Relative()
+    }
+}))
 
 async function main() {
     await boot()
     const rootElement = document.getElementById("root")
     const Router = AppRouter.Main
     const App = observer(() => {
-        const height = use100vh()
+        const classes = useStyles()
+        const height = use100vh() || undefined
         return (
             <ThemeProvider theme={Theme}>
                 <CssBaseLine />
-                <Router style={{ width: "100vw", height: height || undefined, position: "relative" }} />
+                <Router style={{ height }} className={classes.router} />
             </ThemeProvider>
         )
     })

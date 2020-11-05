@@ -9,7 +9,7 @@ interface RouteState {
     prevLocation: HistoryLocation | undefined
 }
 
-export default class Route extends Base {
+export class RouteStore extends Base {
     @observable state: RouteState = {
         location: globalHistory.location,
         prevLocation: undefined

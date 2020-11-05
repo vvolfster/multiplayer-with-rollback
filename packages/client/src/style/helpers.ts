@@ -22,8 +22,8 @@ export function Margin(v: number, h?: number) {
     }
 }
 
-export function Size(v: number | string, h?: number | string) {
-    if (!h) {
+export function Size(v: number | string, h?: number | string): React.CSSProperties {
+    if (h === undefined) {
         const val = typeof v === "number" ? v * SPACING : v
         return { width: val, height: val }
     } else {

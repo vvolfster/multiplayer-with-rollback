@@ -6,6 +6,8 @@
         "skipLibCheck": true,
         "esModuleInterop": true,
         "allowSyntheticDefaultImports": true,
+        "sourceMap": true,
+        "declarationMap": true,
         "strict": true,
         "forceConsistentCasingInFileNames": true,
         "module": "esnext",
