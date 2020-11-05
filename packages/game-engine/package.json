@@ -1,0 +1,17 @@
+{
+    "name": "game-engine",
+    "version": "1.0.0",
+    "description": "",
+    "main": "dist/index.js",
+    "author": "vvolfster",
+    "license": "MIT",
+    "scripts": {
+        "build": "npx tsc",
+        "dev": "nodemon",
+        "lint": "eslint --fix \"src/**/*.{js,ts,jsx,tsx}\""
+    },
+    "dependencies": {
+        "lodash": "4.17.20",
+        "big.js": "6.0.0"
+    }
+}

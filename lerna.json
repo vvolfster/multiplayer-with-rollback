@@ -1,0 +1,4 @@
+{
+    "packages": ["packages/game-engine", "packages/client"],
+    "version": "1.0.0"
+}

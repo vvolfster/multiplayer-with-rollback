@@ -1,0 +1,19 @@
+{
+    "compilerOptions": {
+        "target": "es5",
+        "lib": ["es6"],
+        "declaration": true,
+        "sourceMap": true,
+        "noFallthroughCasesInSwitch": true,
+        "skipLibCheck": true,
+        "esModuleInterop": true,
+        "allowSyntheticDefaultImports": true,
+        "strict": true,
+        "forceConsistentCasingInFileNames": true,
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "resolveJsonModule": true,
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true,
+    }
+}
