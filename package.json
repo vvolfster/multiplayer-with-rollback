@@ -48,7 +48,6 @@
         "eslint-plugin-react-directives": "^1.0.1",
         "nodemon": "^2.0.4",
         "prettier": "^2.0.5",
-        "github-webhook-handler": "1.0.0",
         "shelljs": "0.8.4"
     },
     "scripts": {
