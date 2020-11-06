@@ -11,6 +11,7 @@
         "lint": "eslint --fix \"src/**/*.{js,ts,jsx,tsx}\""
     },
     "dependencies": {
+        "async-lock": "^1.2.4",
         "lodash": "4.17.20",
         "shared": "1.0.0",
         "big.js": "6.0.0"

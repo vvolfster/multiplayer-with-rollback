@@ -33,11 +33,11 @@ export function Size(v: number | string, h?: number | string): React.CSSProperti
     }
 }
 
-export function Absolute(): React.CSSProperties {
+export function Absolute(left: number | string = 0, top: number | string = 0): React.CSSProperties {
     return {
         position: "absolute",
-        left: 0,
-        top: 0
+        left,
+        top
     }
 }
 

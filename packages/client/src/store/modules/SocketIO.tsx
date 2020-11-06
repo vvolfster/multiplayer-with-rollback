@@ -1,10 +1,11 @@
-import { MESSAGE_TYPE, IdMessage, Message } from "shared"
+import { MESSAGE_TYPE, Message, PlayerInputMessage, GameStartMessage } from "shared"
 import { observable } from "mobx"
 import { Store } from "../Store"
 import Base from "./Base"
 import SocketIOClient from "socket.io-client"
-import { getServerPort, getServerUrl, getWsUrl } from "helpers"
+import { getWsUrl } from "helpers"
 import Swal from "sweetalert2"
+import { each } from "lodash"
 
 export enum SOCKET_STATE {
     CONNECTING = "CONNECTING",
@@ -13,7 +14,18 @@ export enum SOCKET_STATE {
     ERROR = "ERROR"
 }
 
+interface ListenerMap<M extends Message> {
+    [key: string]: (inputMsg: M) => void
+}
+
+interface ListenersMap {
+    [MESSAGE_TYPE.INPUT]: ListenerMap<PlayerInputMessage>
+    [MESSAGE_TYPE.GAME_START]: ListenerMap<GameStartMessage>
+}
+
 export class SocketIOStore extends Base {
+    static LISTENER_ID = 0
+
     @observable
     userId: string = ""
 
@@ -21,9 +33,17 @@ export class SocketIOStore extends Base {
     socketState = SOCKET_STATE.NOT_CONNECTED
 
     private _io?: SocketIOClient.Socket
+    private _listeners: ListenersMap = {
+        [MESSAGE_TYPE.INPUT]: {},
+        [MESSAGE_TYPE.GAME_START]: {}
+    }
 
     sendMsg = <M extends Message>(message: M) => {
         this.io().emit(message.type, message)
+    }
+
+    private static GetId() {
+        return ++SocketIOStore.LISTENER_ID
     }
 
     private io() {
@@ -75,7 +95,30 @@ export class SocketIOStore extends Base {
             this.io().on("connect", async () => {
                 this.socketState = SOCKET_STATE.CONNECTED
                 this.setUserId(resolve)
+
+                this.io().on(MESSAGE_TYPE.INPUT, (msg: PlayerInputMessage) => {
+                    each(this._listeners[MESSAGE_TYPE.INPUT], fn => fn(msg))
+                })
+                this.io().on(MESSAGE_TYPE.GAME_START, (msg: GameStartMessage) => {
+                    each(this._listeners[MESSAGE_TYPE.GAME_START], fn => fn(msg))
+                })
             })
         })
+    }
+
+    addPlayerInputListener = (fn: (payload: PlayerInputMessage) => void): (() => void) => {
+        const id = SocketIOStore.GetId()
+        this._listeners[MESSAGE_TYPE.INPUT][id] = fn
+        return () => {
+            delete this._listeners[MESSAGE_TYPE.INPUT][id]
+        }
+    }
+
+    addGameStartListener = (fn: (payload: GameStartMessage) => void): (() => void) => {
+        const id = SocketIOStore.GetId()
+        this._listeners[MESSAGE_TYPE.GAME_START][id] = fn
+        return () => {
+            delete this._listeners[MESSAGE_TYPE.GAME_START][id]
+        }
     }
 }

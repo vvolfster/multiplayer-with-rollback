@@ -1,8 +1,8 @@
 import { Theme, Slider, TextField } from "@material-ui/core"
 import { makeStyles } from "@material-ui/styles"
 import { Btn } from "components/atoms/Btn"
-import { PlayerInput } from "shared"
-import { TopDownEngine, TState } from "game-engine"
+import { PlayerInput, GameState } from "shared"
+import { TopDownEngine } from "game-engine"
 import { observable, toJS } from "mobx"
 import { observer } from "mobx-react-lite"
 import React from "react"
@@ -33,6 +33,9 @@ const useStyles = makeStyles((theme: Theme) => ({
         borderRadius: "50%",
         transition: "all 0.166s"
     },
+    playerName: {
+        ...Absolute(0, theme.spacing(5))
+    },
     debug: {
         ...Absolute(),
         userSelect: "none",
@@ -47,7 +50,7 @@ class OnePlayerState {
     engine: TopDownEngine
 
     @observable
-    state: TState
+    state: GameState
 
     @observable
     input: PlayerInput
@@ -134,17 +137,26 @@ export const OnePlayerImpl: React.FC = observer(function OnePlayerImpl() {
     const ref = React.useRef<HTMLDivElement>(null)
     React.useEffect(() => componentState.onDestroy, [])
 
+    const printState = {
+        id: componentState.state.id,
+        time: componentState.state.time,
+        entities: componentState.state.entities.map(e => [e.id, e.pos.x, e.pos.y].join(" "))
+    }
+
     const players = componentState.state.entities.map(entity => {
         const style = { left: entity.pos.x, top: entity.pos.y }
-        return <div key={entity.id} className={classes.player} style={style} />
+        return (
+            <div key={entity.id} className={classes.player} style={style}>
+                <div className={classes.playerName}>{entity.id}</div>
+            </div>
+        )
     })
 
     return (
         <div className={classes.page} ref={ref} onClick={() => ref.current?.focus()}>
             {players}
             <div className={classes.debug}>
-                <pre>Input {JSON.stringify(componentState.input.axis, null, 4)}</pre>
-                <pre>State {JSON.stringify(componentState.state, null, 4)}</pre>
+                <pre>State {JSON.stringify(printState, null, 4)}</pre>
                 <Column>
                     <Btn onClick={componentState.reset}>Reset</Btn>
                     <Row align="center" padding={2}>

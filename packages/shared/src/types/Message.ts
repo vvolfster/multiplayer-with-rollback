@@ -1,8 +1,10 @@
-import { PlayerInput } from "./Game"
+import { GameState, PlayerInput } from "./Game"
 
 export enum MESSAGE_TYPE {
     IDENTIFICATION = "IDENTIFICATION",
-    INPUT = "INPUT"
+    INPUT = "INPUT",
+    GAME_START = "GAME_START",
+    REQUEST_GAME_START = "REQUEST_GAME_START"
 }
 
 export interface Message {
@@ -19,5 +21,24 @@ export interface IdMessage extends Message {
 
 export interface PlayerInputMessage extends Message {
     type: MESSAGE_TYPE.INPUT
-    payload: PlayerInput
+    payload: {
+        input: PlayerInput
+        stateId: number
+    }
+}
+
+export interface GameStartMessage extends Message {
+    type: MESSAGE_TYPE.GAME_START
+    payload: {
+        startTime: number
+        gameTime: number
+        states: GameState[]
+    }
+}
+
+export interface RequestGameStartMessage extends Message {
+    type: MESSAGE_TYPE.REQUEST_GAME_START
+    payload: {
+        restartGame: boolean
+    }
 }

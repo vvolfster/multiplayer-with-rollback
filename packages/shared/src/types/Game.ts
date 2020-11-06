@@ -28,3 +28,11 @@ export interface Entity {
         y: number
     }
 }
+
+export interface GameState extends BaseGameState<PlayerInput> {
+    id: number
+    time: number
+    dt: number
+    inputs: PlayerInput[]
+    entities: Entity[]
+}
