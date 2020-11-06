@@ -1,7 +1,7 @@
 import { Theme, Slider, TextField } from "@material-ui/core"
 import { makeStyles } from "@material-ui/styles"
 import { Btn } from "components/atoms/Btn"
-import { PlayerInput } from "shared"
+import { MESSAGE_TYPE, PlayerInput, PlayerInputMessage } from "shared"
 import { TopDownEngine, TState } from "game-engine"
 import { observable, toJS } from "mobx"
 import { observer } from "mobx-react-lite"
@@ -57,21 +57,36 @@ class OnePlayerState {
 
     onDestroy: () => void
 
-    private setX(val: number) {
-        if (this.input.axis.x !== val) {
-            console.log("set x", val)
-            const lagTime = new Date().getTime() - this.engine.engine.startTime - this.simulatedLag
-            this.input.axis.x = val
-            this.engine.engine.setInput(toJS(this.input), lagTime)
+    private updateInput = (payload: PlayerInput) => {
+        this.input = payload
+        const lagTime = new Date().getTime() - this.engine.engine.startTime - this.simulatedLag
+        const msg: PlayerInputMessage = {
+            type: MESSAGE_TYPE.INPUT,
+            ts: lagTime,
+            payload
         }
+
+        store.socketIO.sendMsg(msg)
+        this.engine.engine.setInput(payload, lagTime)
+    }
+
+    private setX(val: number) {
+        if (this.input.axis.x === val) {
+            return
+        }
+
+        const payload = toJS(this.input)
+        payload.axis.x = val
+        this.updateInput(payload)
     }
     private setY(val: number) {
-        if (this.input.axis.y !== val) {
-            console.log("set y", val)
-            const lagTime = new Date().getTime() - this.engine.engine.startTime - this.simulatedLag
-            this.input.axis.y = val
-            this.engine.engine.setInput(toJS(this.input), lagTime)
+        if (this.input.axis.y === val) {
+            return
         }
+
+        const payload = toJS(this.input)
+        payload.axis.y = val
+        this.updateInput(payload)
     }
 
     constructor() {
@@ -128,7 +143,7 @@ class OnePlayerState {
     }
 }
 
-export const OnePlayerImpl: React.FC = observer(function OnePlayerImpl() {
+export const MultiplayerImpl: React.FC = observer(function OnePlayerImpl() {
     const classes = useStyles()
     const [componentState] = React.useState(() => new OnePlayerState())
     const ref = React.useRef<HTMLDivElement>(null)
@@ -169,10 +184,10 @@ export const OnePlayerImpl: React.FC = observer(function OnePlayerImpl() {
     )
 })
 
-export const OnePlayer: React.FC = observer(function OnePlayer() {
+export const Multiplayer: React.FC = observer(function Multiplayer() {
     const { userId } = store.socketIO
     if (!userId) {
         return null
     }
-    return <OnePlayerImpl />
+    return <MultiplayerImpl />
 })

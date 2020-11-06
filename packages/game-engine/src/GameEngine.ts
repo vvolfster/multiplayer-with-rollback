@@ -1,26 +1,16 @@
+import { BaseGameState, BaseInput } from "shared"
 import { cloneDeep, times } from "lodash"
 
-export interface InputState {
-    playerId: number
-}
+export type EngineRunFn<I extends BaseInput, G extends BaseGameState<I>> = (state: G) => G
 
-export interface GameState<I extends InputState> {
-    id: number
-    time: number
-    dt: number
-    inputs: I[]
-}
-
-export type EngineRunFn<I extends InputState, G extends GameState<I>> = (state: G) => G
-
-export interface GameStateRecalculateWithInput<I extends InputState> {
+export interface GameStateRecalculateWithInput<I extends BaseInput> {
     stateIdx: number
     input: I
 }
 
-export type RunParams<I extends InputState> = GameStateRecalculateWithInput<I> | { time: number; dt: number }
+export type RunParams<I extends BaseInput> = GameStateRecalculateWithInput<I> | { time: number; dt: number }
 
-export class GameEngine<I extends InputState, G extends GameState<I>> {
+export class GameEngine<I extends BaseInput, G extends BaseGameState<I>> {
     public startTime = 0
 
     private runFn: EngineRunFn<I, G>

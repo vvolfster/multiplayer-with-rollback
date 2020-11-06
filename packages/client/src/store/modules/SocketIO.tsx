@@ -22,7 +22,7 @@ export class SocketIOStore extends Base {
 
     private _io?: SocketIOClient.Socket
 
-    private sendMsg = <M extends Message>(message: M) => {
+    sendMsg = <M extends Message>(message: M) => {
         this.io().emit(message.type, message)
     }
 
@@ -33,6 +33,39 @@ export class SocketIOStore extends Base {
         return this._io
     }
 
+    setUserId = async (callback?: () => void) => {
+        const { store } = this
+        if (!store) {
+            throw new Error("Called setUserId before init")
+        }
+
+        await Swal.fire({
+            title: "Hello stranger",
+            text: "Tell me your name",
+            icon: "info",
+            confirmButtonText: "Confirm",
+            input: "text",
+            allowEscapeKey: false,
+            allowOutsideClick: false,
+            inputValue: store.localStorage.username,
+            preConfirm: async (inputValue: string) => {
+                this.sendMsg({
+                    type: MESSAGE_TYPE.IDENTIFICATION,
+                    payload: {
+                        id: inputValue
+                    }
+                })
+                store.localStorage.set.username(inputValue)
+                this.userId = inputValue
+                if (callback) {
+                    callback()
+                }
+            }
+        })
+
+        await Swal.fire(`Welcome ${store.localStorage.username}!`)
+    }
+
     init = async (store: Store) => {
         super.init(store)
         this._io = SocketIOClient(getWsUrl())
@@ -41,30 +74,7 @@ export class SocketIOStore extends Base {
         return new Promise<void>((resolve, reject) => {
             this.io().on("connect", async () => {
                 this.socketState = SOCKET_STATE.CONNECTED
-
-                await Swal.fire({
-                    title: "Hello stranger",
-                    text: "Tell me your name",
-                    icon: "info",
-                    confirmButtonText: "Confirm",
-                    input: "text",
-                    allowEscapeKey: false,
-                    allowOutsideClick: false,
-                    inputValue: store.localStorage.username,
-                    preConfirm: async (inputValue: string) => {
-                        this.sendMsg({
-                            type: MESSAGE_TYPE.IDENTIFICATION,
-                            payload: {
-                                id: inputValue
-                            }
-                        })
-                        store.localStorage.set.username(inputValue)
-                        this.userId = inputValue
-                        resolve()
-                    }
-                })
-
-                await Swal.fire(`Welcome ${store.localStorage.username}!`)
+                this.setUserId(resolve)
             })
         })
     }

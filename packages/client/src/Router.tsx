@@ -4,6 +4,7 @@ import { capitalize, every, find, keys, toLower, values } from "lodash"
 import { Router, Redirect } from "@reach/router"
 import { Home } from "pages/Home"
 import { OnePlayer } from "pages/OnePlayer"
+import { Multiplayer } from "pages/Multiplayer"
 
 interface RouterProps {
     className?: string
@@ -13,7 +14,8 @@ interface RouterProps {
 export const PATHS = {
     INDEX: () => "/",
     HOME: () => "/home",
-    ONE_PLAYER: () => "/one-player"
+    ONE_PLAYER: () => "/one-player",
+    MULTI_PLAYER: () => "/multiplayer"
 }
 
 export function getPageName(PATH: string) {
@@ -42,7 +44,7 @@ export function getPageName(PATH: string) {
     })
 
     if (!matchingPathName) {
-        return "MT Game"
+        return "Game"
     }
 
     return matchingPathName.split("_").map(toLower).map(capitalize).join(" ")
@@ -55,6 +57,7 @@ const Main: React.FC<RouterProps> = props => (
         <Route path={PATHS.INDEX()} component={RedirectToHome} />
         <Route path={PATHS.HOME()} component={Home} />
         <Route path={PATHS.ONE_PLAYER()} component={OnePlayer} />
+        <Route path={PATHS.MULTI_PLAYER()} component={Multiplayer} />
     </Router>
 )
 

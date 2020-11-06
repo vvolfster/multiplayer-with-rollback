@@ -1,4 +1,16 @@
-export interface PlayerInput {
+export interface BaseInput {
+    playerId: number | string
+}
+
+export interface BaseGameState<I extends BaseInput> {
+    id: number
+    time: number
+    dt: number
+    inputs: I[]
+}
+
+export interface PlayerInput extends BaseInput {
+    playerId: string
     axis: {
         x: number
         y: number
@@ -6,11 +18,11 @@ export interface PlayerInput {
 }
 
 export interface Entity {
-    id: number
+    id: string
     pos: {
         x: number
         y: number
-    },
+    }
     velocity: {
         x: number
         y: number

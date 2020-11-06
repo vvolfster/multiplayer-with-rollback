@@ -101,10 +101,15 @@ export const Column: React.FC<RowColumnProps> = props => {
     const classes = useStyles()
     const alignClass = getAlignClass(props.align, classes)
     const justifyClass = getJustifyClass(props.justify, classes)
+    const style = {
+        ...props.style,
+        margin: props.margin ? props.margin * SPACING : undefined,
+        padding: props.padding ? props.padding * SPACING : undefined
+    }
 
     const className = clsx(classes.column, props.className, alignClass, justifyClass)
     return (
-        <div className={clsx(className)} style={props.style}>
+        <div className={clsx(className)} style={style}>
             {props.children}
         </div>
     )

@@ -9,8 +9,6 @@ import React, { CSSProperties } from "react"
 export interface BtnProps extends Omit<ButtonProps, "onClick"> {
     className?: string
     style?: CSSProperties
-    children?: React.ReactNode
-
     onClick?: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => any
     loading?: boolean
 }
