@@ -1,4 +1,4 @@
-import { MESSAGE_TYPE, Message, PlayerInputMessage, GameStartMessage } from "shared"
+import { MESSAGE_TYPE, Message, PlayerInputMessage, GameStateMessage } from "shared"
 import { observable } from "mobx"
 import { Store } from "../Store"
 import Base from "./Base"
@@ -20,7 +20,7 @@ interface ListenerMap<M extends Message> {
 
 interface ListenersMap {
     [MESSAGE_TYPE.INPUT]: ListenerMap<PlayerInputMessage>
-    [MESSAGE_TYPE.GAME_START]: ListenerMap<GameStartMessage>
+    [MESSAGE_TYPE.GAME_STATE]: ListenerMap<GameStateMessage>
 }
 
 export class SocketIOStore extends Base {
@@ -35,7 +35,7 @@ export class SocketIOStore extends Base {
     private _io?: SocketIOClient.Socket
     private _listeners: ListenersMap = {
         [MESSAGE_TYPE.INPUT]: {},
-        [MESSAGE_TYPE.GAME_START]: {}
+        [MESSAGE_TYPE.GAME_STATE]: {}
     }
 
     sendMsg = <M extends Message>(message: M) => {
@@ -99,8 +99,8 @@ export class SocketIOStore extends Base {
                 this.io().on(MESSAGE_TYPE.INPUT, (msg: PlayerInputMessage) => {
                     each(this._listeners[MESSAGE_TYPE.INPUT], fn => fn(msg))
                 })
-                this.io().on(MESSAGE_TYPE.GAME_START, (msg: GameStartMessage) => {
-                    each(this._listeners[MESSAGE_TYPE.GAME_START], fn => fn(msg))
+                this.io().on(MESSAGE_TYPE.GAME_STATE, (msg: GameStateMessage) => {
+                    each(this._listeners[MESSAGE_TYPE.GAME_STATE], fn => fn(msg))
                 })
             })
         })
@@ -114,11 +114,11 @@ export class SocketIOStore extends Base {
         }
     }
 
-    addGameStartListener = (fn: (payload: GameStartMessage) => void): (() => void) => {
+    addGameStateListener = (fn: (payload: GameStateMessage) => void): (() => void) => {
         const id = SocketIOStore.GetId()
-        this._listeners[MESSAGE_TYPE.GAME_START][id] = fn
+        this._listeners[MESSAGE_TYPE.GAME_STATE][id] = fn
         return () => {
-            delete this._listeners[MESSAGE_TYPE.GAME_START][id]
+            delete this._listeners[MESSAGE_TYPE.GAME_STATE][id]
         }
     }
 }

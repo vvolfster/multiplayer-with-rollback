@@ -72,11 +72,8 @@ class MultiplayerState {
         }
 
         this.engine.engine.setInput(input)
-        if (MultiplayerState.SimulatedLatency) {
-            setTimeout(() => store.socketIO.sendMsg(msg), MultiplayerState.SimulatedLatency)
-        } else {
-            store.socketIO.sendMsg(msg)
-        }
+        setTimeout(() => store.socketIO.sendMsg(msg), MultiplayerState.SimulatedLatency)
+
         console.log(`update input at ${stateId}`, input.axis)
     }
 
@@ -100,7 +97,7 @@ class MultiplayerState {
     }
 
     constructor() {
-        this.engine = new TopDownEngine(100)
+        this.engine = new TopDownEngine("", 100)
         this.state = this.engine.engine.currentState()
         this.input = {
             playerId: store.socketIO.userId,
@@ -118,10 +115,10 @@ class MultiplayerState {
         MouseTrap.bind([UP, DOWN], () => this.setY(0), "keyup")
         MouseTrap.bind([LEFT, RIGHT], () => this.setX(0), "keyup")
 
-        const unsub1 = store.socketIO.addGameStartListener(msg => {
+        const unsub1 = store.socketIO.addGameStateListener(msg => {
             this.engine.engine.stopGameLoop()
 
-            this.engine = new TopDownEngine(100)
+            this.engine = new TopDownEngine(msg.payload.gameId, 100)
             this.engine.engine.loadFromState(msg.payload.states)
             this.engine.engine.startGameLoop(10, msg.payload.startTime, msg.payload.gameTime, state => (this.state = state))
         })
@@ -180,9 +177,11 @@ export const MultiplayerImpl: React.FC<MultiplayerImplProps> = observer(function
     React.useEffect(() => componentState.onDestroy, [])
 
     const printState = {
+        gameId: componentState.state.gameId,
         id: componentState.state.id,
         time: componentState.state.time,
-        entities: componentState.state.entities.map(e => [e.id, e.pos.x, e.pos.y].join(" "))
+        entities: componentState.state.entities.map(e => [e.id, e.pos.x, e.pos.y].join(" ")),
+        randNumber: componentState.state.randNumber
     }
 
     const players = componentState.state.entities.map(entity => {

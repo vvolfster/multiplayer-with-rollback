@@ -13,7 +13,7 @@
         "game-engine": "1.0.0",
         "shared": "1.0.0",
         "mousetrap": "1.6.5",
-        "axios": "^0.19.2",
+        "axios": "0.19.2",
         "clsx": "^1.1.0",
         "lodash": "4.17.20",
         "mobx": "^5.15.4",

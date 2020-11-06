@@ -2,6 +2,7 @@
     "name": "multiplayer-with-rollback-root",
     "private": true,
     "devDependencies": {
+        "@types/nanoid": "1.0.0",
         "@types/socket.io-client": "1.4.32",
         "@types/big.js": "4.0.4",
         "@types/uglify-js": "^3.11.1",
@@ -62,6 +63,6 @@
         "lint": "lerna run lint --stream --parallel"
     },
     "engines": {
-        "node": "12.13.0"
+        "node": "^12"
     }
 }

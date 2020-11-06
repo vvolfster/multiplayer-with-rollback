@@ -1,7 +1,12 @@
+import Chance from "chance"
 import { BaseGameState, BaseInput } from "shared"
 import { cloneDeep, times } from "lodash"
 
-export type EngineRunFn<I extends BaseInput, G extends BaseGameState<I>> = (state: G) => G
+export interface EngineRunHelpers {
+    chance: () => Chance.Chance
+}
+
+export type EngineRunFn<I extends BaseInput, G extends BaseGameState<I>> = (state: G, helpers: EngineRunHelpers) => G
 
 export interface GameStateRecalculateWithInput<I extends BaseInput> {
     stateIdx: number
@@ -22,6 +27,13 @@ export class GameEngine<I extends BaseInput, G extends BaseGameState<I>> {
     private numStatesToKeep = 50
     private exitGameLoopFn?: () => void
     private inputQueue: InputQueueItem<I>[] = []
+
+    private getEngineRunHelpers = (state: G): EngineRunHelpers => {
+        const seed = [state.gameId, state.id].join("-")
+        return {
+            chance: () => new Chance(seed)
+        }
+    }
 
     private isGameStateWithRelac = (obj: any): obj is GameStateRecalculateWithInput<I> => {
         return obj && typeof obj.stateIdx === "number"
@@ -53,7 +65,7 @@ export class GameEngine<I extends BaseInput, G extends BaseGameState<I>> {
             state.id += 1
             state.time = time
             state.dt = dt
-            const newState = this.runFn(state)
+            const newState = this.runFn(state, this.getEngineRunHelpers(state))
             states.push(newState)
 
             // after we finish, make sure we only keep what we need
@@ -87,7 +99,7 @@ export class GameEngine<I extends BaseInput, G extends BaseGameState<I>> {
                     prevState.time = s.time
                     prevState.dt = s.dt
 
-                    states[thisIdx] = this.runFn(prevState)
+                    states[thisIdx] = this.runFn(prevState, this.getEngineRunHelpers(prevState))
                 }
             })
         }
@@ -152,10 +164,10 @@ export class GameEngine<I extends BaseInput, G extends BaseGameState<I>> {
                     const { input, stateId } = queueItem
                     const stateIdx = stateId === undefined ? -1 : this.states.findIndex(s => s.id === stateId)
                     this.run({ stateIdx, input })
-                    console.log(
-                        `re-calculated (${stateId}) from idx: ${stateIdx} which is ${this.states.length - 1 - stateIdx} states ago`,
-                        JSON.stringify(this.states[this.states.length - 1], null, 4)
-                    )
+                    // console.log(
+                    //     `re-calculated (${stateId}) from idx: ${stateIdx} which is ${this.states.length - 1 - stateIdx} states ago`,
+                    //     JSON.stringify(this.states[this.states.length - 1], null, 4)
+                    // )
                 }
             }
 
@@ -201,5 +213,13 @@ export class GameEngine<I extends BaseInput, G extends BaseGameState<I>> {
             return 0
         }
         return this.states[this.states.length - 1].id
+    }
+
+    gameId = () => {
+        const [first] = this.states
+        if (!first) {
+            return ""
+        }
+        return first.gameId
     }
 }

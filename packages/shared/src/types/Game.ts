@@ -3,10 +3,13 @@ export interface BaseInput {
 }
 
 export interface BaseGameState<I extends BaseInput> {
-    id: number
-    time: number
-    dt: number
-    inputs: I[]
+    gameId: string // unique random id. this needs to be agreed on by players
+    id: number // tick id
+    time: number // current game time
+    dt: number // step time
+    inputs: I[] // player inputs
+
+    // random numbers are generated using the gameId and id
 }
 
 export interface PlayerInput extends BaseInput {
@@ -35,4 +38,5 @@ export interface GameState extends BaseGameState<PlayerInput> {
     dt: number
     inputs: PlayerInput[]
     entities: Entity[]
+    randNumber: number
 }

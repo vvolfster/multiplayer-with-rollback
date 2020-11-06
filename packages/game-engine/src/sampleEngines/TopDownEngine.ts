@@ -1,29 +1,32 @@
 import { PlayerInput, GameState } from "shared"
-import { GameEngine } from "../GameEngine"
+import { GameEngine, EngineRunHelpers } from "../GameEngine"
 
 export class TopDownEngine {
     engine: GameEngine<PlayerInput, GameState>
 
     movespeed = 50
 
-    constructor(movespeed?: number) {
+    constructor(gameId: string, movespeed?: number) {
         if (movespeed) {
             this.movespeed = movespeed
         }
 
         this.engine = new GameEngine<PlayerInput, GameState>(this.runFn, {
+            gameId,
             dt: 0,
             id: 0,
             inputs: [],
             time: 0,
-            entities: [
-                { id: "wolf", pos: { x: 0, y: 0 }, velocity: { x: 0, y: 0 } },
-                { id: "bart", pos: { x: 0, y: 0 }, velocity: { x: 0, y: 0 } }
-            ]
+            entities: [],
+            randNumber: 0
         })
     }
 
-    private runFn = (state: GameState) => {
+    private runFn = (state: GameState, helpers: EngineRunHelpers) => {
+        if (state.time % 1000 === 0) {
+            state.randNumber = helpers.chance().integer({ min: 0, max: 100 })
+        }
+
         state.inputs.forEach(input => {
             let player = state.entities.find(e => e.id === input.playerId)
             if (!player) {

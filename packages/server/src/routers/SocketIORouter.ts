@@ -1,5 +1,6 @@
+import { nanoid } from "nanoid"
 import { TopDownEngine } from "game-engine"
-import { MESSAGE_TYPE, IdMessage, PlayerInputMessage, RequestGameStartMessage, GameStartMessage, Message } from "shared"
+import { MESSAGE_TYPE, IdMessage, PlayerInputMessage, RequestGameStartMessage, GameStateMessage, Message } from "shared"
 import socketIo from "socket.io"
 import http from "http"
 
@@ -24,7 +25,7 @@ export class SocketIORouter {
 
     constructor(server: http.Server) {
         this.io = socketIo(server)
-        this.engine = new TopDownEngine(100)
+        this.engine = new TopDownEngine("", 100)
 
         this.io.on("connection", socket => {
             console.log("a socket connected")
@@ -55,13 +56,16 @@ export class SocketIORouter {
                 try {
                     if (message.payload.restartGame || !this.startTime) {
                         this.engine.engine.stopGameLoop()
-                        this.engine = new TopDownEngine(100)
+
+                        const gameId = nanoid(10)
+                        this.engine = new TopDownEngine(gameId, 100)
 
                         this.startTime = new Date().getTime()
                         this.engine.engine.startGameLoop(10, this.startTime)
-                        const message: GameStartMessage = {
-                            type: MESSAGE_TYPE.GAME_START,
+                        const message: GameStateMessage = {
+                            type: MESSAGE_TYPE.GAME_STATE,
                             payload: {
+                                gameId,
                                 startTime: this.engine.engine.startTime,
                                 gameTime: this.engine.engine.currentState().time,
                                 states: this.engine.engine.allStates()
@@ -69,9 +73,10 @@ export class SocketIORouter {
                         }
                         this.broadcast(message)
                     } else {
-                        const message: GameStartMessage = {
-                            type: MESSAGE_TYPE.GAME_START,
+                        const message: GameStateMessage = {
+                            type: MESSAGE_TYPE.GAME_STATE,
                             payload: {
+                                gameId: this.engine.engine.gameId(),
                                 startTime: this.engine.engine.startTime,
                                 gameTime: this.engine.engine.currentState().time,
                                 states: this.engine.engine.allStates()

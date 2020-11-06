@@ -1,7 +1,7 @@
 import { observable } from "mobx"
 import Base from "./Base"
 
-export enum LOCAL_STORAGE_KEYS  {
+export enum LOCAL_STORAGE_KEYS {
     USER_NAME = "USER_NAME"
 }
 
