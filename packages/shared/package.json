@@ -6,6 +6,7 @@
     "author": "vvolfster",
     "license": "MIT",
     "scripts": {
+        "cleanbuildfiles": "rimraf ./dist/*",
         "build": "npx tsc",
         "dev": "nodemon",
         "lint": "eslint --fix \"src/**/*.{js,ts,jsx,tsx}\""
