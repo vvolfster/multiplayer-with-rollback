@@ -6,6 +6,7 @@
     "author": "vvolfster",
     "license": "MIT",
     "scripts": {
+        "start": "node dist/index",
         "build": "npx tsc",
         "dev": "nodemon",
         "lint": "eslint --fix \"src/**/*.{js,ts,jsx,tsx}\""

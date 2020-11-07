@@ -55,12 +55,14 @@
         "shelljs": "0.8.4"
     },
     "scripts": {
+        "createnpmrc": "echo \"//registry.npmjs.org/:_authToken=${NPM_TOKEN}\" > .npmrc",
         "hoist": "lerna bootstrap --hoist",
         "cleanbuildfiles": "lerna run cleanbuildfiles --stream --parallel",
         "devclient": "cd packages/client && npm run dev",
         "dev": "lerna run dev --stream --parallel",
         "buildclient": "cd packages/client && npm run build",
         "start": "cd packages/server && npm run start",
+        "heroku-prebuild": "npm i -g lerna",
         "build": "lerna bootstrap && lerna run build",
         "lint": "lerna run lint --stream --parallel"
     },
