@@ -14,5 +14,5 @@ export function getServerUrl() {
 
 export function getWsUrl() {
     const port = getServerPort()
-    return `${window.location.hostname}:${port}`
+    return port === 80 ? window.location.hostname : `${window.location.hostname}:${port}`
 }
