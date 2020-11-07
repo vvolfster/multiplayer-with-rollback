@@ -44,7 +44,7 @@
         "cleanbuildfiles": "rimraf ./build/*",
         "dev": "npm start",
         "start": "craco start",
-        "build": "craco build",
+        "build": "craco build && node ../../../../scripts/copyClientBuildToServer",
         "eject": "react-scripts eject",
         "lint": "eslint --fix \"src/**/*.{js,ts,jsx,tsx}\""
     }
