@@ -53,7 +53,7 @@ class MultiplayerState {
     @observable
     input: PlayerInput
 
-    @observable static SimulatedLatency = 200
+    @observable static SimulatedLatency = 10
 
     onDestroy: () => void
 
@@ -72,7 +72,7 @@ class MultiplayerState {
         this.engine.engine.setInput(input)
         setTimeout(() => store.socketIO.sendMsg(msg), MultiplayerState.SimulatedLatency)
 
-        console.log(`update input at ${stateId}`, input.axis)
+        console.log(`update input at stateId: ${stateId}`, input.axis)
     }
 
     private setX(val: number) {

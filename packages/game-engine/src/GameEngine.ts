@@ -19,6 +19,7 @@ interface InputQueueItem<I extends BaseInput> {
     input: I
     stateId: number
 }
+
 export class GameEngine<I extends BaseInput, G extends BaseGameState<I>> {
     public startTime = 0
 
@@ -46,6 +47,20 @@ export class GameEngine<I extends BaseInput, G extends BaseGameState<I>> {
         } else {
             state.inputs.push(input)
         }
+    }
+
+    private processInputQueue = () => {
+        const currentStateId = this.currentStateId()
+
+        // separate the input queue into
+        const inputQueueItemsToProcess = this.inputQueue.filter(q => q.stateId < currentStateId)
+        this.inputQueue = this.inputQueue.filter(q => q.stateId >= currentStateId)
+
+        inputQueueItemsToProcess.forEach(queueItem => {
+            const { input, stateId } = queueItem
+            const stateIdx = stateId === undefined ? -1 : this.states.findIndex(s => s.id === stateId)
+            this.run({ stateIdx, input })
+        })
     }
 
     constructor(engineRunFn: EngineRunFn<I, G>, startingState: G) {
@@ -118,23 +133,9 @@ export class GameEngine<I extends BaseInput, G extends BaseGameState<I>> {
                 this.replaceInput(states[states.length - 1], input)
             }
         } else if (stateId !== undefined) {
-            // this is an old input that we are just receiving now. So we should
-            // re-calc. We do this by adding this input into the inputQueue to process in the game loop
-            const idx = this.inputQueue.findIndex(q => q.stateId === stateId && q.input.playerId === input.playerId)
-            if (idx !== -1) {
-                this.inputQueue[idx] = { input, stateId }
-            } else {
-                this.inputQueue.push({ input, stateId })
-            }
+            this.inputQueue.push({ input, stateId })
         }
     }
-
-    currentState = () => {
-        const { states } = this
-        return cloneDeep(states[states.length - 1])
-    }
-
-    allStates = () => this.states
 
     startGameLoop = (fps: number, startTime = new Date().getTime(), gameTime = 0, onStateUpdate?: (g: G) => any) => {
         // kill any current loop if running
@@ -178,22 +179,8 @@ export class GameEngine<I extends BaseInput, G extends BaseGameState<I>> {
 
             // handle input queues only on ticks where the state was updated
             if (didUpdateState) {
-                // if there is input queued up (from the network), handle it first
-                // handle only input queue len at the start of this loop
-                while (this.inputQueue.length) {
-                    const queueItem = this.inputQueue.shift()
-                    if (queueItem) {
-                        const { input, stateId } = queueItem
-                        const stateIdx = stateId === undefined ? -1 : this.states.findIndex(s => s.id === stateId)
-                        this.run({ stateIdx, input })
-                        // console.log(
-                        //     `re-calculated (${stateId}) from idx: ${stateIdx} which is ${this.states.length - 1 - stateIdx} states ago: ${JSON.stringify(
-                        //         input
-                        //     )}`
-                        // )
-                    }
-                }
-
+                this.processInputQueue()
+                // if there's a state update. do that
                 if (onStateUpdate) {
                     onStateUpdate(this.currentState())
                 }
@@ -218,18 +205,21 @@ export class GameEngine<I extends BaseInput, G extends BaseGameState<I>> {
         this.states = states
     }
 
+    // getters
+    allStates = () => this.states
+    currentState = () => {
+        const { states } = this
+        return cloneDeep(states[states.length - 1])
+    }
     currentStateId = () => {
-        if (!this.states.length) {
+        const { states } = this
+        if (!states.length) {
             return 0
         }
-        return this.states[this.states.length - 1].id
+        return states[states.length - 1].id
     }
-
     gameId = () => {
-        const [first] = this.states
-        if (!first) {
-            return ""
-        }
-        return first.gameId
+        const { states } = this
+        return !states.length ? "" : states[states.length - 1].gameId
     }
 }

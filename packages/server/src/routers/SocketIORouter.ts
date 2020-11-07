@@ -40,6 +40,10 @@ export class SocketIORouter {
                     console.error(`Error parsing ${MESSAGE_TYPE.IDENTIFICATION}`, JSON.stringify(message, null, 4))
                 }
             })
+            socket.on("disconnect", () => {
+                console.log(socketId, "socket disconnected")
+            })
+
             socket.on(MESSAGE_TYPE.INPUT, (message: PlayerInputMessage) => {
                 if (!socketId) {
                     return
