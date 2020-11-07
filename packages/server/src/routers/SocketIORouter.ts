@@ -50,6 +50,7 @@ export class SocketIORouter {
                 }
 
                 // broadcast this to every other socket
+                console.log("Input broadcasting", message.payload.stateId, JSON.stringify(message.payload.input.axis))
                 this.broadcast(message, [socketId])
 
                 // update local state

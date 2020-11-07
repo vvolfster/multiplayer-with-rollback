@@ -50,17 +50,27 @@ export class GameEngine<I extends BaseInput, G extends BaseGameState<I>> {
     }
 
     private processInputQueue = () => {
+        const { inputQueue } = this
         const currentStateId = this.currentStateId()
+        const indicesToRemove: number[] = []
 
         // separate the input queue into
-        const inputQueueItemsToProcess = this.inputQueue.filter(q => q.stateId < currentStateId)
-        this.inputQueue = this.inputQueue.filter(q => q.stateId >= currentStateId)
+        for (let i = 0; i < inputQueue.length; i++) {
+            const queueItem = inputQueue[i]
+            if (queueItem.stateId > currentStateId) {
+                // process more next game step
+                break
+            } else {
+                const { input, stateId } = queueItem
+                const iii = input as any
+                console.log("handle input queue", stateId, JSON.stringify(iii.axis))
+                const stateIdx = stateId === undefined ? -1 : this.states.findIndex(s => s.id === stateId)
+                this.run({ stateIdx, input })
+                indicesToRemove.push(i)
+            }
+        }
 
-        inputQueueItemsToProcess.forEach(queueItem => {
-            const { input, stateId } = queueItem
-            const stateIdx = stateId === undefined ? -1 : this.states.findIndex(s => s.id === stateId)
-            this.run({ stateIdx, input })
-        })
+        indicesToRemove.reverse().forEach(i => inputQueue.splice(i, 1))
     }
 
     constructor(engineRunFn: EngineRunFn<I, G>, startingState: G) {
@@ -122,18 +132,19 @@ export class GameEngine<I extends BaseInput, G extends BaseGameState<I>> {
 
     setInput = (input: I, stateId?: number) => {
         const { states } = this
-        const stateIdx = stateId === undefined ? -1 : states.findIndex(s => s.id === stateId)
 
         // this is local input. no need to put it on the queue
-        if (stateIdx === -1) {
+        if (stateId === undefined) {
             // this is a new input that should be applied on the next run call
             // we can effectively do this by replacing the input of the last
             // state we have
             if (states.length) {
                 this.replaceInput(states[states.length - 1], input)
             }
-        } else if (stateId !== undefined) {
+        } else {
+            const iii = input as any
             this.inputQueue.push({ input, stateId })
+            console.log("Pushed to queue", stateId, JSON.stringify(iii.axis))
         }
     }
 
@@ -164,6 +175,7 @@ export class GameEngine<I extends BaseInput, G extends BaseGameState<I>> {
             }
 
             // do normal game loop
+            didUpdateState = false
             const now = new Date().getTime()
             frameTime = now - currentTime
             accumulator += frameTime

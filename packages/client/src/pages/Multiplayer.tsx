@@ -72,7 +72,7 @@ class MultiplayerState {
         this.engine.engine.setInput(input)
         setTimeout(() => store.socketIO.sendMsg(msg), MultiplayerState.SimulatedLatency)
 
-        console.log(`update input at stateId: ${stateId}`, input.axis)
+        console.log(`update input ${stateId}`, input.axis)
     }
 
     private setX(val: number) {
@@ -130,6 +130,7 @@ class MultiplayerState {
         store.socketIO.sendMsg(msg)
 
         const unsub2 = store.socketIO.addPlayerInputListener(msg => {
+            console.log("Receive input", msg.payload.stateId, JSON.stringify(msg.payload.input.axis))
             this.engine.engine.setInput(msg.payload.input, msg.payload.stateId)
         })
 
@@ -172,7 +173,12 @@ export const MultiplayerImpl: React.FC<MultiplayerImplProps> = observer(function
     const classes = useStyles()
     const [componentState] = React.useState(() => new MultiplayerState())
     const ref = React.useRef<HTMLDivElement>(null)
-    React.useEffect(() => componentState.onDestroy, [])
+    React.useEffect(() => {
+        return () => {
+            componentState.onDestroy()
+            console.log("destroyed")
+        }
+    }, [])
 
     const printState = {
         gameId: componentState.state.gameId,
