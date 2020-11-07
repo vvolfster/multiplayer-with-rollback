@@ -63,7 +63,7 @@
         "buildclient": "cd packages/client && npm run build",
         "start": "cd packages/server && npm run start",
         "heroku-prebuild": "npm i -g lerna",
-        "build": "lerna bootstrap && lerna run build",
+        "build": "npm run hoist && lerna run build",
         "lint": "lerna run lint --stream --parallel"
     },
     "engines": {
