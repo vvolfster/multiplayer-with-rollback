@@ -1,12 +1,11 @@
-import { Theme, Slider, TextField } from "@material-ui/core"
-import { makeStyles } from "@material-ui/styles"
+import { Theme, Slider, TextField, makeStyles } from "@material-ui/core"
 import { Btn } from "components/atoms/Btn"
 import { MESSAGE_TYPE, PlayerInput, PlayerInputMessage, RequestGameStartMessage, GameState } from "shared"
 import { TopDownEngine } from "game-engine"
 import { observable, toJS } from "mobx"
 import { observer } from "mobx-react-lite"
 import React from "react"
-import { Absolute, Padding, Relative, Size } from "style"
+import { Absolute, Padding, Size, Relative } from "style"
 import MouseTrap from "mousetrap"
 import { Column, Row } from "components/atoms/RowColumn"
 import { isArray } from "lodash"
@@ -24,7 +23,6 @@ const useStyles = makeStyles((theme: Theme) => ({
         ...Padding(2),
         userSelect: "none"
     },
-
     player: {
         ...Size(4),
         background: "red",

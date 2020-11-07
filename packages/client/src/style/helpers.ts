@@ -1,3 +1,4 @@
+import { CSSProperties } from "@material-ui/styles"
 import { SPACING } from "./config/spacing"
 
 export function Padding(v: number, h?: number) {
@@ -22,7 +23,7 @@ export function Margin(v: number, h?: number) {
     }
 }
 
-export function Size(v: number | string, h?: number | string): React.CSSProperties {
+export function Size(v: number | string, h?: number | string): CSSProperties {
     if (h === undefined) {
         const val = typeof v === "number" ? v * SPACING : v
         return { width: val, height: val }
@@ -33,7 +34,7 @@ export function Size(v: number | string, h?: number | string): React.CSSProperti
     }
 }
 
-export function Absolute(left: number | string = 0, top: number | string = 0): React.CSSProperties {
+export function Absolute(left: number | string = 0, top: number | string = 0): CSSProperties {
     return {
         position: "absolute",
         left,
@@ -41,7 +42,7 @@ export function Absolute(left: number | string = 0, top: number | string = 0): R
     }
 }
 
-export function Relative(): React.CSSProperties {
+export function Relative(): CSSProperties {
     return {
         position: "relative"
     }

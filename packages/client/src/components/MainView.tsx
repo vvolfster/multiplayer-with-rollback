@@ -1,13 +1,12 @@
 import store from "store/Store"
-import { Theme as MuiTheme } from "@material-ui/core"
-import { makeStyles } from "@material-ui/styles"
+import { Theme as MuiTheme, makeStyles } from "@material-ui/core"
 import { navigate } from "@reach/router"
 import { observer } from "mobx-react-lite"
 import { use100vh } from "react-div-100vh"
 import "mobx-react-lite/batchingForReactDom"
 import React from "react"
 import { getPageName, PATHS } from "Router"
-import { Padding, Relative } from "style"
+import { Padding } from "style"
 import { Btn } from "./atoms/Btn"
 import { Menu } from "./atoms/Menu"
 import { Column, Row } from "./atoms/RowColumn"
@@ -25,7 +24,7 @@ const useStyles = makeStyles((theme: MuiTheme) => ({
         ...Padding(2)
     },
     router: {
-        ...Relative(),
+        position: "relative",
         flexGrow: 1,
         overflow: "auto"
     }

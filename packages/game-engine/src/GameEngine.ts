@@ -120,7 +120,12 @@ export class GameEngine<I extends BaseInput, G extends BaseGameState<I>> {
         } else if (stateId !== undefined) {
             // this is an old input that we are just receiving now. So we should
             // re-calc. We do this by adding this input into the inputQueue to process in the game loop
-            this.inputQueue.push({ input, stateId })
+            const idx = this.inputQueue.findIndex(q => q.stateId === stateId && q.input.playerId === input.playerId)
+            if (idx !== -1) {
+                this.inputQueue[idx] = { input, stateId }
+            } else {
+                this.inputQueue.push({ input, stateId })
+            }
         }
     }
 
@@ -140,7 +145,7 @@ export class GameEngine<I extends BaseInput, G extends BaseGameState<I>> {
         const timeTimeSeconds = tickTimeMs / 1000
         const looperFn = typeof window === "undefined" ? setImmediate : requestAnimationFrame
 
-        this.numStatesToKeep = fps * 3
+        this.numStatesToKeep = fps * 5
         console.log("num states to keep", this.numStatesToKeep)
         this.startTime = startTime
 
@@ -157,20 +162,6 @@ export class GameEngine<I extends BaseInput, G extends BaseGameState<I>> {
                 return
             }
 
-            // if there is input queued up (from the network), handle it first
-            while (this.inputQueue.length) {
-                const queueItem = this.inputQueue.shift()
-                if (queueItem) {
-                    const { input, stateId } = queueItem
-                    const stateIdx = stateId === undefined ? -1 : this.states.findIndex(s => s.id === stateId)
-                    this.run({ stateIdx, input })
-                    // console.log(
-                    //     `re-calculated (${stateId}) from idx: ${stateIdx} which is ${this.states.length - 1 - stateIdx} states ago`,
-                    //     JSON.stringify(this.states[this.states.length - 1], null, 4)
-                    // )
-                }
-            }
-
             // do normal game loop
             const now = new Date().getTime()
             frameTime = now - currentTime
@@ -185,8 +176,27 @@ export class GameEngine<I extends BaseInput, G extends BaseGameState<I>> {
                 accumulator -= tickTimeMs
             }
 
-            if (didUpdateState && onStateUpdate) {
-                onStateUpdate(this.currentState())
+            // handle input queues only on ticks where the state was updated
+            if (didUpdateState) {
+                // if there is input queued up (from the network), handle it first
+                // handle only input queue len at the start of this loop
+                while (this.inputQueue.length) {
+                    const queueItem = this.inputQueue.shift()
+                    if (queueItem) {
+                        const { input, stateId } = queueItem
+                        const stateIdx = stateId === undefined ? -1 : this.states.findIndex(s => s.id === stateId)
+                        this.run({ stateIdx, input })
+                        // console.log(
+                        //     `re-calculated (${stateId}) from idx: ${stateIdx} which is ${this.states.length - 1 - stateIdx} states ago: ${JSON.stringify(
+                        //         input
+                        //     )}`
+                        // )
+                    }
+                }
+
+                if (onStateUpdate) {
+                    onStateUpdate(this.currentState())
+                }
             }
 
             looperFn(loop)

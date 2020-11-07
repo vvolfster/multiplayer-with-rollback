@@ -78,7 +78,7 @@ class OnePlayerState {
     }
 
     constructor() {
-        this.engine = new TopDownEngine(100)
+        this.engine = new TopDownEngine("localplayer", 100)
         this.state = this.engine.engine.currentState()
         this.input = {
             playerId: store.socketIO.userId,
@@ -106,12 +106,12 @@ class OnePlayerState {
             this.engine.engine.stopGameLoop()
         }
 
-        this.engine.engine.startGameLoop(10, state => (this.state = state))
+        this.engine.engine.startGameLoop(10, undefined, undefined, state => (this.state = state))
     }
 
     reset = () => {
         this.engine.engine.stopGameLoop()
-        this.engine = new TopDownEngine(100)
+        this.engine = new TopDownEngine("local", 100)
         this.state = this.engine.engine.currentState()
         this.input = {
             playerId: store.socketIO.userId,
@@ -121,7 +121,7 @@ class OnePlayerState {
             }
         }
 
-        this.engine.engine.startGameLoop(30, state => (this.state = state))
+        this.engine.engine.startGameLoop(30, undefined, undefined, state => (this.state = state))
     }
 
     updateLagValue = (e: any, val: number | number[]) => {

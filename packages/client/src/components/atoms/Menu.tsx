@@ -1,5 +1,4 @@
-import { Popover, Theme } from "@material-ui/core"
-import { makeStyles } from "@material-ui/styles"
+import { Popover, Theme, makeStyles } from "@material-ui/core"
 import React, { CSSProperties } from "react"
 import { Btn } from "./Btn"
 import { Column } from "./RowColumn"

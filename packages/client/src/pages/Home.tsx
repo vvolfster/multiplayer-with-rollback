@@ -1,6 +1,5 @@
 import { observer } from "mobx-react-lite"
-import { Theme } from "@material-ui/core"
-import { makeStyles } from "@material-ui/styles"
+import { Theme, makeStyles } from "@material-ui/core"
 import { Btn } from "components/atoms/Btn"
 import { Column } from "components/atoms/RowColumn"
 import React from "react"
