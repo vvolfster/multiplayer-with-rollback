@@ -55,6 +55,7 @@
         "shelljs": "0.8.4"
     },
     "scripts": {
+        "ngrok": "ngrok start -all -config=ngrok.yml",
         "createnpmrc": "echo \"//registry.npmjs.org/:_authToken=${NPM_TOKEN}\" > .npmrc",
         "hoist": "lerna bootstrap --hoist",
         "cleanbuildfiles": "lerna run cleanbuildfiles --stream --parallel",
