@@ -31,7 +31,7 @@ const useStyles = makeStyles((theme: Theme) => ({
         ...Absolute(),
         border: "solid 1px",
         borderRadius: "50%",
-        transition: "all 0.166s"
+        transition: "all 0.08s"
     },
     playerName: {
         ...Absolute(0, theme.spacing(5))
@@ -121,7 +121,7 @@ class OnePlayerState {
             }
         }
 
-        this.engine.engine.startGameLoop(30, undefined, undefined, state => (this.state = state))
+        this.engine.engine.startGameLoop(10, undefined, undefined, state => (this.state = state))
     }
 
     updateLagValue = (e: any, val: number | number[]) => {

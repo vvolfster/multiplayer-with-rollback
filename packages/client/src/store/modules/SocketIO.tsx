@@ -68,6 +68,16 @@ export class SocketIOStore extends Base {
             allowEscapeKey: false,
             allowOutsideClick: false,
             inputValue: store.localStorage.username,
+            inputValidator: v => {
+                if (!v || !v.length) {
+                    return "Too Short"
+                }
+
+                if (v.length > 10) {
+                    return "Too long"
+                }
+                return null
+            },
             preConfirm: async (inputValue: string) => {
                 this.sendMsg({
                     type: MESSAGE_TYPE.IDENTIFICATION,
