@@ -29,7 +29,7 @@ const useStyles = makeStyles((theme: Theme) => ({
         ...Absolute(),
         border: "solid 1px",
         borderRadius: "50%",
-        transition: "all 0.08s"
+        transition: "all 0.2s"
     },
     playerName: {
         ...Absolute(0, theme.spacing(5))
