@@ -40,13 +40,17 @@ export class GameEngine<I extends BaseInput, G extends BaseGameState<I>> {
         return obj && typeof obj.stateIdx === "number"
     }
 
-    private replaceInput = (state: G, input: I) => {
-        const idx = state.inputs.findIndex(i => i.playerId === input.playerId)
+    private replaceInput = (inputs: I[], updateInput: I) => {
+        const idx = inputs.findIndex(i => i.playerId === updateInput.playerId)
         if (idx !== -1) {
-            state.inputs[idx] = input
+            inputs[idx] = updateInput
         } else {
-            state.inputs.push(input)
+            inputs.push(updateInput)
         }
+    }
+
+    private replaceInputInState = (state: G, input: I) => {
+        this.replaceInput(state.inputs, input)
     }
 
     private processInputQueue = () => {
@@ -59,14 +63,19 @@ export class GameEngine<I extends BaseInput, G extends BaseGameState<I>> {
             const queueItem = inputQueue[i]
             if (queueItem.stateId > currentStateId) {
                 // process more next game step
+                console.log("time/space contiunum error", queueItem.stateId - currentStateId)
                 break
             } else {
                 const { input, stateId } = queueItem
                 const iii = input as any
-                console.log("handle input queue", stateId, JSON.stringify(iii.axis))
                 const stateIdx = stateId === undefined ? -1 : this.states.findIndex(s => s.id === stateId)
-                this.run({ stateIdx, input })
-                indicesToRemove.push(i)
+                if (stateIdx === -1) {
+                    console.log(`Set input packed arrived too late. ${stateId} is no longer in the array (processInputQueue)`)
+                } else {
+                    console.log("handle input queue", stateId, JSON.stringify(iii.axis))
+                    this.run({ stateIdx, input })
+                    indicesToRemove.push(i)
+                }
             }
         }
 
@@ -98,35 +107,32 @@ export class GameEngine<I extends BaseInput, G extends BaseGameState<I>> {
         } else {
             const { input } = params
             const idx = params.stateIdx
-            const state = cloneDeep(states[idx])
-            if (!state) {
+            if (!states[idx]) {
                 throw new Error("GameEngine::run no state")
             }
 
-            // playback all states to the current one
-            const numStatesToRewrite = states.length - idx
-            times(numStatesToRewrite, i => {
-                const thisIdx = idx + i
-                if (thisIdx === idx) {
+            for (let i = idx; i < states.length; i++) {
+                if (i === idx) {
                     // since this "correct" input would affect the next state, we dont
                     // change this state. just its input
-                    this.replaceInput(states[thisIdx], input)
+                    this.replaceInputInState(states[i], input)
                 } else {
-                    // we need to keep the inputs of all other players the same (in the states we are overwriting)
-                    // replace this state's input
-                    const s = states[thisIdx]
-                    this.replaceInput(s, input)
+                    // the state at index i is inaccurate. however, we want to keep the other players' inputs from it
+                    const s = states[i]
+                    this.replaceInput(s.inputs, input)
 
-                    // clone the previous state, apply this state's updated inputs to it. then run the fn
-                    const prevState = cloneDeep(states[thisIdx - 1])
-                    prevState.inputs = s.inputs
-                    prevState.id = s.id
-                    prevState.time = s.time
-                    prevState.dt = s.dt
+                    // clone the previous state, generate new state from it
+                    const toBeNewState = cloneDeep(states[i - 1])
+                    toBeNewState.id = s.id
+                    toBeNewState.time = s.time
+                    toBeNewState.dt = s.dt
 
-                    states[thisIdx] = this.runFn(prevState, this.getEngineRunHelpers(prevState))
+                    states[i] = this.runFn(toBeNewState, this.getEngineRunHelpers(toBeNewState))
+
+                    // now re-apply the inputs to it so the next state we generate from this updated state is ok
+                    states[i].inputs = s.inputs
                 }
-            })
+            }
         }
     }
 
@@ -139,7 +145,7 @@ export class GameEngine<I extends BaseInput, G extends BaseGameState<I>> {
             // we can effectively do this by replacing the input of the last
             // state we have
             if (states.length) {
-                this.replaceInput(states[states.length - 1], input)
+                this.replaceInputInState(states[states.length - 1], input)
             }
         } else {
             // if state id is less than the very first state we have in the array,
