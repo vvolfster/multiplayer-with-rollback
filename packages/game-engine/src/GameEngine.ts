@@ -142,6 +142,14 @@ export class GameEngine<I extends BaseInput, G extends BaseGameState<I>> {
                 this.replaceInput(states[states.length - 1], input)
             }
         } else {
+            // if state id is less than the very first state we have in the array,
+            // then this means we got this input too late. this means that the input packet
+            // took too long to get to us and we will be desynced. we need to request new states!
+            if (stateId < states[0].id) {
+                console.log(`Set input packed arrived too late. ${stateId} is no longer in the array`)
+                return
+            }
+
             const iii = input as any
             this.inputQueue.push({ input, stateId })
             console.log("Pushed to queue", stateId, JSON.stringify(iii.axis))
