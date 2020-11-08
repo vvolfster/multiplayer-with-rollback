@@ -94,6 +94,11 @@ class MultiplayerState {
         this.updateInput(payload)
     }
 
+    private updateUIState = (state: GameState) => {
+        // we are in the past by how fast our simulation runs?
+        this.state = state
+    }
+
     constructor() {
         this.engine = new TopDownEngine("", 100)
         this.state = this.engine.engine.currentState()
@@ -118,7 +123,7 @@ class MultiplayerState {
 
             this.engine = new TopDownEngine(msg.payload.gameId, 100)
             this.engine.engine.loadFromState(msg.payload.states)
-            this.engine.engine.startGameLoop(10, msg.payload.startTime, msg.payload.gameTime, state => (this.state = state))
+            this.engine.engine.startGameLoop(10, msg.payload.startTime, msg.payload.gameTime, this.updateUIState)
         })
 
         const msg: RequestGameStartMessage = {
