@@ -63,17 +63,17 @@ class OnePlayerState {
     private setX(val: number) {
         if (this.input.axis.x !== val) {
             console.log("set x", val)
-            const lagTime = new Date().getTime() - this.engine.engine.startTime - this.simulatedLag
+            const ts = new Date().getTime() - this.engine.engine.startTime - this.simulatedLag
             this.input.axis.x = val
-            this.engine.engine.setInput(toJS(this.input), lagTime)
+            this.engine.engine.setInput({ input: toJS(this.input), ts, stateId: this.engine.engine.currentStateId() })
         }
     }
     private setY(val: number) {
         if (this.input.axis.y !== val) {
             console.log("set y", val)
-            const lagTime = new Date().getTime() - this.engine.engine.startTime - this.simulatedLag
+            const ts = new Date().getTime() - this.engine.engine.startTime - this.simulatedLag
             this.input.axis.y = val
-            this.engine.engine.setInput(toJS(this.input), lagTime)
+            this.engine.engine.setInput({ input: toJS(this.input), ts, stateId: this.engine.engine.currentStateId() })
         }
     }
 
@@ -106,7 +106,10 @@ class OnePlayerState {
             this.engine.engine.stopGameLoop()
         }
 
-        this.engine.engine.startGameLoop(10, undefined, undefined, state => (this.state = state))
+        this.engine.engine.startGameLoop({
+            fps: 10,
+            onStateUpdate: state => (this.state = state)
+        })
     }
 
     reset = () => {
@@ -121,7 +124,10 @@ class OnePlayerState {
             }
         }
 
-        this.engine.engine.startGameLoop(10, undefined, undefined, state => (this.state = state))
+        this.engine.engine.startGameLoop({
+            fps: 10,
+            onStateUpdate: state => (this.state = state)
+        })
     }
 
     updateLagValue = (e: any, val: number | number[]) => {

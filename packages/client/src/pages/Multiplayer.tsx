@@ -53,9 +53,24 @@ class MultiplayerState {
     @observable
     input: PlayerInput
 
+    @observable
+    uiUpdateTime = 0
+
     @observable static SimulatedLatency = 10
 
+    @observable static IsCpu = false
+
     onDestroy: () => void
+
+    @observable sendInputQueue: PlayerInputMessage[] = []
+
+    private sendInputs = () => {
+        this.sendInputQueue.forEach(msg => {
+            console.log(`send input ${msg.payload.stateId}`, JSON.stringify(msg.payload.input.axis))
+            setTimeout(() => store.socketIO.sendMsg(msg), MultiplayerState.SimulatedLatency)
+        })
+        this.sendInputQueue = []
+    }
 
     private updateInput = (input: PlayerInput) => {
         this.input = input
@@ -69,10 +84,13 @@ class MultiplayerState {
             }
         }
 
-        this.engine.engine.setInput(input)
-        setTimeout(() => store.socketIO.sendMsg(msg), MultiplayerState.SimulatedLatency)
-
-        console.log(`update input ${stateId}`, input.axis)
+        this.engine.engine.setInput({ input })
+        const idx = this.sendInputQueue.findIndex(q => q.payload.stateId === stateId)
+        if (idx === -1) {
+            this.sendInputQueue.push(msg)
+        } else {
+            this.sendInputQueue[idx] = msg
+        }
     }
 
     private setX(val: number) {
@@ -94,9 +112,32 @@ class MultiplayerState {
         this.updateInput(payload)
     }
 
+    private lastUpdate = 0
+
     private updateUIState = (state: GameState) => {
+        this.sendInputs()
+        if (MultiplayerState.IsCpu) {
+            const mod = state.id % 20
+            if (mod >= 15) {
+                this.setX(-1)
+            } else if (mod >= 10) {
+                this.setX(0)
+            } else if (mod >= 5) {
+                this.setX(1)
+            } else {
+                this.setX(0)
+            }
+        }
+
         // we are in the past by how fast our simulation runs?
-        this.state = state
+        setTimeout(() => {
+            const d = new Date().getTime()
+            if (this.lastUpdate) {
+                this.uiUpdateTime = d - this.lastUpdate
+            }
+            this.lastUpdate = d
+            this.state = state
+        }, 0)
     }
 
     constructor() {
@@ -123,7 +164,12 @@ class MultiplayerState {
 
             this.engine = new TopDownEngine(msg.payload.gameId, 100)
             this.engine.engine.loadFromState(msg.payload.states)
-            this.engine.engine.startGameLoop(10, msg.payload.startTime, msg.payload.gameTime, this.updateUIState)
+            this.engine.engine.startGameLoop({
+                fps: 10,
+                startTime: msg.payload.startTime,
+                gameTime: msg.payload.gameTime,
+                onStateUpdate: this.updateUIState
+            })
         })
 
         const msg: RequestGameStartMessage = {
@@ -135,8 +181,9 @@ class MultiplayerState {
         store.socketIO.sendMsg(msg)
 
         const unsub2 = store.socketIO.addPlayerInputListener(msg => {
-            console.log("Receive input", msg.payload.stateId, JSON.stringify(msg.payload.input.axis))
-            this.engine.engine.setInput(msg.payload.input, msg.payload.stateId)
+            const { payload, ts } = msg
+            const { input, stateId } = payload
+            this.engine.engine.setInput({ ts, input, stateId })
         })
 
         this.onDestroy = () => {
@@ -186,6 +233,7 @@ export const MultiplayerImpl: React.FC<MultiplayerImplProps> = observer(function
     }, [])
 
     const printState = {
+        uiRefreshMs: componentState.uiUpdateTime,
         gameId: componentState.state.gameId,
         id: componentState.state.id,
         time: componentState.state.time,
@@ -209,6 +257,9 @@ export const MultiplayerImpl: React.FC<MultiplayerImplProps> = observer(function
                 <pre style={{ fontSize: 24 }}>{JSON.stringify(printState, null, 4)}</pre>
                 <Column align="stretch">
                     <Row align="center" justify="between">
+                        <Btn variant="outlined" size="small" onClick={() => (MultiplayerState.IsCpu = !MultiplayerState.IsCpu)}>
+                            CPU ({MultiplayerState.IsCpu ? "On" : "Off"})
+                        </Btn>
                         <Btn variant="outlined" size="small" onClick={componentState.reset}>
                             Reset
                         </Btn>

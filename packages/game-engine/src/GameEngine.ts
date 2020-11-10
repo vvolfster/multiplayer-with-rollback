@@ -1,6 +1,6 @@
 import Chance from "chance"
 import { BaseGameState, BaseInput } from "shared"
-import { cloneDeep, times } from "lodash"
+import { cloneDeep, max, times } from "lodash"
 
 export interface EngineRunHelpers {
     chance: () => Chance.Chance
@@ -18,6 +18,20 @@ export type RunParams<I extends BaseInput> = GameStateRecalculateWithInput<I> | 
 interface InputQueueItem<I extends BaseInput> {
     input: I
     stateId: number
+    ts: number
+}
+
+interface SetInputParams<I extends BaseInput> {
+    input: I
+    stateId?: number
+    ts?: number
+}
+
+interface StartGameLoopParams<I extends BaseInput, G extends BaseGameState<I>> {
+    fps: number
+    startTime?: number
+    gameTime?: number
+    onStateUpdate?: (g: G) => any
 }
 
 export class GameEngine<I extends BaseInput, G extends BaseGameState<I>> {
@@ -58,24 +72,32 @@ export class GameEngine<I extends BaseInput, G extends BaseGameState<I>> {
         const currentStateId = this.currentStateId()
         const indicesToRemove: number[] = []
 
-        // separate the input queue into
+        // first figure if you are in the past, if so, fast forward
+        const maxQueuedStateId = max(inputQueue.map(q => q.stateId))
+        if (maxQueuedStateId && maxQueuedStateId > currentStateId) {
+            const numStatesToFastForward = maxQueuedStateId - currentStateId
+            console.log("fast forwarding", numStatesToFastForward, "states to catch up")
+            const currentState = this.states[this.states.length - 1]
+            const { dt, time } = currentState
+
+            times(numStatesToFastForward, i => {
+                const stateTime = time * (i + 1)
+                this.run({ time: stateTime, dt })
+            })
+        }
+
         for (let i = 0; i < inputQueue.length; i++) {
             const queueItem = inputQueue[i]
-            if (queueItem.stateId > currentStateId) {
-                // process more next game step
-                console.log("time/space contiunum error", queueItem.stateId - currentStateId)
-                break
+            const { input, stateId } = queueItem
+            const iii = input as any
+            const stateIdx = stateId === undefined ? -1 : this.states.findIndex(s => s.id === stateId)
+            console.log("received msg", this.states.length - 1 - stateIdx, "states in the past")
+            if (stateIdx === -1) {
+                console.log(`Set input packed arrived too late. ${stateId} is no longer in the array (processInputQueue)`)
             } else {
-                const { input, stateId } = queueItem
-                const iii = input as any
-                const stateIdx = stateId === undefined ? -1 : this.states.findIndex(s => s.id === stateId)
-                if (stateIdx === -1) {
-                    console.log(`Set input packed arrived too late. ${stateId} is no longer in the array (processInputQueue)`)
-                } else {
-                    console.log("handle input queue", stateId, JSON.stringify(iii.axis))
-                    this.run({ stateIdx, input })
-                    indicesToRemove.push(i)
-                }
+                console.log("handle input queue", stateId, JSON.stringify(iii.axis))
+                this.run({ stateIdx, input })
+                indicesToRemove.push(i)
             }
         }
 
@@ -136,7 +158,9 @@ export class GameEngine<I extends BaseInput, G extends BaseGameState<I>> {
         }
     }
 
-    setInput = (input: I, stateId?: number) => {
+    setInput = (params: SetInputParams<I>) => {
+        let { ts } = params
+        const { input, stateId } = params
         const { states } = this
 
         // this is local input. no need to put it on the queue
@@ -148,21 +172,43 @@ export class GameEngine<I extends BaseInput, G extends BaseGameState<I>> {
                 this.replaceInputInState(states[states.length - 1], input)
             }
         } else {
+            if (!ts) {
+                ts = new Date().getTime()
+            }
+
             // if state id is less than the very first state we have in the array,
             // then this means we got this input too late. this means that the input packet
             // took too long to get to us and we will be desynced. we need to request new states!
             if (stateId < states[0].id) {
                 console.log(`Set input packed arrived too late. ${stateId} is no longer in the array`)
+                // TODO wolf, handle this
                 return
             }
 
+            // figure out how far back in the past you are. this means you need to catch up
             const iii = input as any
-            this.inputQueue.push({ input, stateId })
-            console.log("Pushed to queue", stateId, JSON.stringify(iii.axis))
+            const existingIdx = this.inputQueue.findIndex(q => q.stateId === stateId && q.input.playerId === input.playerId)
+            if (existingIdx === -1) {
+                this.inputQueue.push({ input, stateId, ts })
+                console.log("Pushed to queue", stateId, JSON.stringify(iii.axis))
+            } else {
+                // replace with more up to date information
+                this.inputQueue[existingIdx] = { input, stateId, ts }
+                console.log("replaced queue item", stateId, JSON.stringify(iii.axis))
+            }
         }
     }
 
-    startGameLoop = (fps: number, startTime = new Date().getTime(), gameTime = 0, onStateUpdate?: (g: G) => any) => {
+    startGameLoop = (params: StartGameLoopParams<I, G>) => {
+        const { fps, onStateUpdate } = params
+        let { gameTime, startTime } = params
+        if (!startTime) {
+            startTime = new Date().getTime()
+        }
+        if (!gameTime) {
+            gameTime = 0
+        }
+
         // kill any current loop if running
         this.stopGameLoop()
 
@@ -205,7 +251,9 @@ export class GameEngine<I extends BaseInput, G extends BaseGameState<I>> {
 
             // handle input queues only on ticks where the state was updated
             if (didUpdateState) {
+                // process the input queue
                 this.processInputQueue()
+
                 // if there's a state update. do that
                 if (onStateUpdate) {
                     onStateUpdate(this.currentState())

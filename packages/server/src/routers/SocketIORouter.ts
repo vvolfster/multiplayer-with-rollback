@@ -53,8 +53,11 @@ export class SocketIORouter {
                 console.log("Input broadcasting", message.payload.stateId, JSON.stringify(message.payload.input.axis))
                 this.broadcast(message, [socketId])
 
+                const { ts, payload } = message
+                const { input, stateId } = payload
+
                 // update local state
-                this.engine.engine.setInput(message.payload.input, message.payload.stateId)
+                this.engine.engine.setInput({ input, stateId, ts })
             })
             socket.on(MESSAGE_TYPE.REQUEST_GAME_START, (message: RequestGameStartMessage) => {
                 // tell everyone new game
@@ -66,7 +69,7 @@ export class SocketIORouter {
                         this.engine = new TopDownEngine(gameId, 100)
 
                         this.startTime = new Date().getTime()
-                        this.engine.engine.startGameLoop(10, this.startTime)
+                        this.engine.engine.startGameLoop({ fps: 10, startTime: this.startTime })
                         const message: GameStateMessage = {
                             type: MESSAGE_TYPE.GAME_STATE,
                             payload: {
